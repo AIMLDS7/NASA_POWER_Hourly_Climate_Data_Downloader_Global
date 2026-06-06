@@ -1,183 +1,184 @@
+<div align="center">
+
+# 🛰️ NASA POWER Hourly Climate Data Downloader
+
+<p align="center">
+  <em>Production-grade climate data pipeline · NASA POWER API · Analysis-ready time-series output</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.8%2B-3776AB?style=flat-square&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Jupyter-Notebook-F37626?style=flat-square&logo=jupyter&logoColor=white"/>
+  <img src="https://img.shields.io/badge/NASA-POWER%20API-0B3D91?style=flat-square&logo=nasa&logoColor=white"/>
+  <img src="https://img.shields.io/badge/License-MIT-22C55E?style=flat-square"/>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Data-Hourly%20Resolution-8B5CF6?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Coverage-Global%202001--Present-06B6D4?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Output-CSV%20%7C%20Excel-10B981?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Parameters-15%20Meteorological-F59E0B?style=flat-square"/>
+</p>
+
+<br/>
+
+<img src="./images/NASA_POWER_Data_Downloader.jpg" width="750" alt="NASA POWER Data Downloader Interface"/>
+
+</div>
+
+---
+
+## 📌 Overview
+
+This notebook implements a **fully automated, end-to-end climate data pipeline** on top of NASA's POWER (Prediction Of Worldwide Energy Resources) API. It removes every friction point between raw satellite-derived reanalysis data and a clean, analysis-ready time-series dataset — making it a first-class data acquisition layer for energy forecasting, building simulation, and agroclimatic ML workflows.
+
+> **Designed for data scientists and ML engineers** who need reproducible, high-quality meteorological features without manual API wrangling.
+
+---
+
+## 🔬 Why NASA POWER?
+
+NASA POWER provides **satellite-derived, model-assimilated reanalysis data** at a 0.5° × 0.625° spatial grid — the gold standard for locations with no nearby weather station. Unlike scraping commercial APIs, POWER data is:
+
+- **Free, open, and reproducible** — no API keys, no rate-limit billing surprises
+- **Physically consistent** — gap-filled using NASA GEOS-5 model assimilation
+- **ML-ready** — continuous hourly records since 2001 with defined missing-value flags (`-999`) auto-converted to `NaN`
+
+---
+
+## ⚙️ Data Pipeline Architecture
+
 ```
-███╗   ██╗ █████╗ ███████╗ █████╗     ██████╗  ██████╗ ██╗    ██╗███████╗██████╗
-████╗  ██║██╔══██╗██╔════╝██╔══██╗    ██╔══██╗██╔═══██╗██║    ██║██╔════╝██╔══██╗
-██╔██╗ ██║███████║███████╗███████║    ██████╔╝██║   ██║██║ █╗ ██║█████╗  ██████╔╝
-██║╚██╗██║██╔══██║╚════██║██╔══██║    ██╔═══╝ ██║   ██║██║███╗██║██╔══╝  ██╔══██╗
-██║ ╚████║██║  ██║███████║██║  ██║    ██║     ╚██████╔╝╚███╔███╔╝███████╗██║  ██║
-╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝   ╚═╝      ╚═════╝  ╚══╝╚══╝ ╚══════╝╚═╝  ╚═╝
+┌─────────────────────────────────────────────────────────────────────┐
+│                     NASA POWER DATA PIPELINE                        │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────────────┐  │
+│  │  USER INPUT  │───▶│  REST API    │───▶│   RAW JSON RESPONSE  │  │
+│  │              │    │  (HTTPS GET) │    │   NASA POWER Server  │  │
+│  │ · Date range │    │              │    └──────────┬───────────┘  │
+│  │ · Lat / Lon  │    │ Timeout: 180s│               │              │
+│  │ · Community  │    │              │               ▼              │
+│  │ · Parameters │    └──────────────┘    ┌──────────────────────┐  │
+│  └──────────────┘                        │  DATA PROCESSING     │  │
+│                                          │                      │  │
+│                                          │ · JSON → DataFrame   │  │
+│                                          │ · Index → DateTime   │  │
+│                                          │ · -999 → NaN         │  │
+│                                          │ · Sort by timestamp  │  │
+│                                          └──────────┬───────────┘  │
+│                                                     │              │
+│                                                     ▼              │
+│                                          ┌──────────────────────┐  │
+│                                          │  STRUCTURED OUTPUT   │  │
+│                                          │                      │  │
+│                                          │ NASA_{COM}_{LAT}_    │  │
+│                                          │ {LON}_{START}_{END}  │  │
+│                                          │ .csv / .xlsx         │  │
+│                                          └──────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
 ```
-
-# 🛰️ NASA POWER Data Downloader
-
-**Download hourly climate data from NASA's POWER API — no coding required. Just open, click, and download.**
-
-[![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-F37626?style=for-the-badge&logo=jupyter&logoColor=white)](https://jupyter.org/)
-[![NASA POWER](https://img.shields.io/badge/NASA-POWER%20API-0B3D91?style=for-the-badge&logo=nasa&logoColor=white)](https://power.larc.nasa.gov/)
-[![ipywidgets](https://img.shields.io/badge/ipywidgets-Interactive%20UI-orange?style=for-the-badge)](https://ipywidgets.readthedocs.io/)
-[![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
-
----
-
-## 🔭 What Is This?
-
-A fully interactive **Jupyter Notebook** that pulls hourly climate data directly from [NASA's POWER API](https://power.larc.nasa.gov/) — covering any land location on Earth from **2001 to yesterday**. No API keys. No configuration files. No scripting needed.
-
-Pick your location, date range, community, and parameters — hit **Download Data** — and get a clean, labelled CSV or Excel file in seconds.
-
-![NASA POWER Data Downloader Interface](images/NASA_POWER_Data_Downloader.jpg)
-
----
-
-## ✨ Features at a Glance
-
-|   | Feature |
-|---|---------|
-| 🌍 | **Global Coverage** — Any land point on Earth at 0.5° × 0.625° grid resolution |
-| 📅 | **Hourly Resolution** — Timestamped in UTC from 2001-01-01 to yesterday |
-| 🏙️ | **Location Presets** — 25+ cities across 🇦🇹 Austria, 🇩🇪 Germany, and Europe |
-| 🏢 | **3 Data Communities** — RE (Renewable Energy), SB (Sustainable Buildings), AG (Agroclimatology) |
-| 📊 | **15 Climate Parameters** — Solar radiation, wind, temperature, humidity, precipitation |
-| 💾 | **Export to CSV or Excel** — Auto-named with location + date range |
-| 📈 | **Instant Summary** — Preview table, statistics, and download link after every fetch |
-| ⚡ | **Zero Config** — 2 cells to run: install → launch |
-
----
-
-## 🖥️ Interface Preview
-
-![Parameters Selection Interface](images/parameters.jpg)
 
 ---
 
 ## 🚀 Quick Start
 
-### 1 — Clone the repository
+### Prerequisites
 
 ```bash
-git clone https://github.com/AIMLDS7/NASA_POWER_Data_Downloader.git
-cd NASA_POWER_Data_Downloader
+pip install jupyter ipywidgets requests pandas openpyxl
 ```
 
-### 2 — Open the notebook
+### Launch
 
 ```bash
+git clone https://github.com/AIMLDS7/NASA_POWER_Hourly_Climate_Data_Downloader.git
+cd NASA_POWER_Hourly_Climate_Data_Downloader
 jupyter notebook NASA_POWER_Downloader_R05.ipynb
 ```
 
-### 3 — Run Cell 1 (once only)
+**Cell 1 — Install dependencies** *(run once)*
 
-```
-📦 Installing dependencies...
-✅ All dependencies installed!
-```
-
-Installs: `ipywidgets` · `requests` · `pandas` · `openpyxl`
-
-### 4 — Run Cell 2 to launch the UI
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  🛰️  NASA POWER Data Downloader                             │
-│       Hourly Climate Data • Global Coverage • 2001-Present  │
-├─────────────────────────────────────────────────────────────┤
-│  📅 Date Range    [ 2026-05-31 ]  →  [ 2026-06-06 ]         │
-│  📍 Location      Vienna (Wien)   48.2082°N  16.3738°E       │
-│  🏢 Community     ● RE   ○ SB   ○ AG                         │
-│  📊 Parameters    ☑ Solar  ☑ Wind  ☑ Temperature  ☑ Humidity │
-│  💾 Output        ● CSV   ○ Excel                            │
-│                                                             │
-│              [ ⬇ Download Data ]                            │
-└─────────────────────────────────────────────────────────────┘
+```python
+# Auto-installs: ipywidgets · requests · pandas · openpyxl
 ```
 
-### 5 — Your file is ready
+**Cell 2 — Launch interactive interface** *(configure & download)*
 
 ```
-✅ Download Complete!
-📁 File:       NASA_RE_48.2082_16.3738_2026-05-31_2026-06-06.csv
-📍 Location:   48.2082°N, 16.3738°E
-📅 Period:     2026-05-31 to 2026-06-06
-📊 Records:    168 hourly observations
-📈 Parameters: ALLSKY_SFC_SW_DWN, WS10M, T2M, RH2M ...
-⚠️ Missing Data: 0.0%
+▶ Run → interactive UI renders inline
 ```
 
 ---
 
-## 🏢 Data Communities
+## 🖥️ Interactive Interface
 
-Three NASA POWER communities are supported, each optimized for a different domain:
+<div align="center">
+<img src="./images/parameters.jpg" width="700" alt="Parameter Selection Interface"/>
+</div>
 
-| Community | Focus | Best For |
-|-----------|-------|----------|
-| **RE** | Renewable Energy | Solar panel sizing, wind turbine analysis, PV system design |
-| **SB** | Sustainable Buildings | HVAC design, building energy simulation, thermal comfort |
-| **AG** | Agroclimatology | Crop modeling, irrigation planning, agricultural forecasting |
+The UI is built with `ipywidgets` and renders fully inside Jupyter. All inputs are validated before the API call is dispatched.
 
-![Community Descriptions and Troubleshooting](images/community_description_and_trouble_shooting.jpg)
+| Section | Options |
+|---|---|
+| **Date Range** | Any range from 2001-01-01 to yesterday; <30 days recommended |
+| **Location** | 25+ city presets (Austria / Germany / Europe) or custom lat/lon |
+| **Community** | RE · SB · AG (auto-reorders parameters by domain relevance) |
+| **Parameters** | 15 meteorological variables with Select All / Clear All |
+| **Output Format** | CSV (`.csv`) or Excel (`.xlsx`) |
 
-Switching communities **automatically reorders** the parameter list by relevance and applies smart defaults.
+---
+
+## 🏢 Data Communities & Domain Mapping
+
+<div align="center">
+<img src="./images/community_description_and_trouble_shooting.jpg" width="700" alt="Community Descriptions and Troubleshooting"/>
+</div>
+
+Each NASA POWER community optimises the parameter set for a specific scientific domain:
+
+| Community | Domain | ML / Engineering Applications |
+|---|---|---|
+| **RE** — Renewable Energy | Solar & wind resource assessment | PV yield modelling, wind power forecasting, grid dispatch optimisation |
+| **SB** — Sustainable Buildings | Building thermodynamics | HVAC load prediction, thermal comfort simulation, EnergyPlus inputs |
+| **AG** — Agroclimatology | Crop & soil science | Evapotranspiration modelling, irrigation scheduling, yield forecasting |
+
+> Switching communities **automatically reorders** the parameter list by relevance and applies domain-appropriate smart defaults.
 
 ---
 
 ## 📊 Parameter Reference
 
-All 15 available climate parameters:
+<div align="center">
+<img src="./images/parameters_reference.jpg" width="700" alt="Full Parameter Reference Table"/>
+</div>
 
-![Parameter Reference Table](images/parameters_reference.jpg)
-
-| Parameter | Description | Units |
-|-----------|-------------|-------|
-| `T2M` | Temperature at 2 meters | °C |
-| `T2MDEW` | Dew/Frost Point at 2 meters | °C |
-| `T2MWET` | Wet Bulb Temperature at 2 meters | °C |
-| `RH2M` | Relative Humidity at 2 meters | % |
-| `QV2M` | Specific Humidity at 2 meters | g/kg |
-| `PS` | Surface Pressure | kPa |
-| `WS10M` | Wind Speed at 10 meters | m/s |
-| `WS50M` | Wind Speed at 50 meters | m/s |
-| `WD10M` | Wind Direction at 10 meters | Degrees |
-| `WD50M` | Wind Direction at 50 meters | Degrees |
-| `PRECTOTCORR` | Precipitation (Corrected) | mm/hour |
-| `ALLSKY_SFC_SW_DWN` | All Sky Surface Shortwave Downward Irradiance | W/m² |
-| `ALLSKY_SFC_SW_DNI` | All Sky Direct Normal Irradiance | W/m² |
-| `ALLSKY_SFC_SW_DIFF` | All Sky Diffuse Horizontal Irradiance | W/m² |
-| `CLRSKY_SFC_SW_DWN` | Clear Sky Shortwave Downward Irradiance | W/m² |
-
-> Parameters are dynamically filtered and reordered by relevance when you switch communities.
+| Parameter | Description | Units | Domain Priority |
+|---|---|---|---|
+| `ALLSKY_SFC_SW_DWN` | All Sky Surface Shortwave Downward Irradiance | W/m² | RE · SB · AG |
+| `CLRSKY_SFC_SW_DWN` | Clear Sky Shortwave Downward Irradiance | W/m² | RE · SB |
+| `ALLSKY_SFC_SW_DNI` | Direct Normal Irradiance | W/m² | RE |
+| `ALLSKY_SFC_SW_DIFF` | Diffuse Horizontal Irradiance | W/m² | RE |
+| `WS10M` | Wind Speed at 10 m | m/s | RE · SB · AG |
+| `WS50M` | Wind Speed at 50 m | m/s | RE |
+| `WD10M` | Wind Direction at 10 m | Degrees | RE · SB |
+| `WD50M` | Wind Direction at 50 m | Degrees | RE |
+| `T2M` | Air Temperature at 2 m | °C | RE · SB · AG |
+| `T2MDEW` | Dew/Frost Point Temperature | °C | RE · SB · AG |
+| `T2MWET` | Wet Bulb Temperature | °C | SB · AG |
+| `RH2M` | Relative Humidity at 2 m | % | RE · SB · AG |
+| `QV2M` | Specific Humidity at 2 m | g/kg | SB · AG |
+| `PS` | Surface Pressure | kPa | RE · SB |
+| `PRECTOTCORR` | Corrected Total Precipitation | mm/hr | SB · AG |
 
 ---
 
-## 🏙️ Built-In Location Presets
+## 📁 Output Schema
 
-No need to look up coordinates for common cities — just select from the dropdown:
-
-```
-🇦🇹 AUSTRIA          🇩🇪 GERMANY             🌍 OTHER
-─────────────────   ──────────────────────  ───────────────────────
-Vienna (Wien)       Berlin                  London, UK
-Graz                Munich (München)        Paris, France
-Linz                Hamburg                 Zurich, Switzerland
-Salzburg            Frankfurt am Main       Amsterdam, Netherlands
-Innsbruck           Cologne (Köln)          Rome, Italy
-Klagenfurt          Stuttgart               Madrid, Spain
-Villach             Düsseldorf              New York, USA
-Wels                Leipzig
-St. Pölten          Dortmund
-Dornbirn            Dresden, Hannover ...
-```
-
-For any other location, type in custom latitude/longitude — or use [latlong.net](https://www.latlong.net/).
-
----
-
-## 📂 Output File Format
-
-Output files are auto-named using this convention:
+Files are auto-named using a deterministic convention for full reproducibility:
 
 ```
-NASA_{COMMUNITY}_{LAT}_{LON}_{START_DATE}_{END_DATE}.csv
+NASA_{COMMUNITY}_{LATITUDE}_{LONGITUDE}_{START_DATE}_{END_DATE}.csv
 ```
 
 **Example:**
@@ -185,36 +186,93 @@ NASA_{COMMUNITY}_{LAT}_{LON}_{START_DATE}_{END_DATE}.csv
 NASA_RE_48.2082_16.3738_2026-05-31_2026-06-06.csv
 ```
 
-The file contains:
-- **Index**: `DateTime_UTC` — hourly timestamps in UTC (`YYYY-MM-DD HH:MM:SS`)
-- **Columns**: One column per selected parameter (NASA missing values `-999` replaced with `NaN`)
-- **Format**: Clean, analysis-ready; compatible with pandas, Excel, R, and any CSV tool
+| Column | Type | Description |
+|---|---|---|
+| `DateTime_UTC` | `DatetimeIndex` | Hourly UTC timestamps (`YYYY-MM-DD HH:MM:SS`) |
+| `ALLSKY_SFC_SW_DWN` | `float64` | Solar irradiance — W/m² |
+| `WS10M` | `float64` | Wind speed — m/s |
+| `T2M` | `float64` | Temperature — °C |
+| `...` | `float64` | All selected parameters |
+
+Missing values (`-999`, `-99`) are automatically replaced with `NaN` for clean downstream ingestion into pandas, scikit-learn, or any ML pipeline.
+
+---
+
+## 🧠 Downstream ML Use Cases
+
+This downloader was designed as the **data acquisition layer** for meteorology-driven ML pipelines:
+
+```
+NASA POWER Downloader
+        │
+        ▼
+  Hourly CSV / Excel
+        │
+   ┌────┴──────────────────────────────────────────┐
+   │                                               │
+   ▼                                               ▼
+Energy Price Forecasting                  PV / Wind Yield Modelling
+(XGBoost · LSTM · Transformer)            (Regression · Neural Net)
+        │                                          │
+        ▼                                          ▼
+  Feature Engineering                    Irradiance → Power Curve
+  · Lag features (t-1, t-24, t-168)      · Temperature derating
+  · Rolling statistics                   · Wind Weibull fitting
+  · Calendar encoding                    · Capacity factor calc
+```
+
+**Directly feeds into:**
+
+- ⚡ [Day-Ahead Energy Price Forecaster (Austria)](https://github.com/AIMLDS7/ML_Dayahead_XGBoost_energy_price_forecaster_Austria) — meteorological features pipeline
+- 🌞 Solar PV yield simulation
+- 🌬️ Wind resource assessment & turbine siting
+
+---
+
+## 🏙️ Location Presets
+
+25+ pre-loaded cities with validated coordinates:
+
+```
+🇦🇹 AUSTRIA              🇩🇪 GERMANY               🌍 EUROPE & BEYOND
+────────────────────    ─────────────────────    ──────────────────────
+Vienna (Wien)           Berlin                   London, UK
+Graz                    Munich (München)         Paris, France
+Linz                    Hamburg                  Zurich, Switzerland
+Salzburg                Frankfurt am Main        Amsterdam, Netherlands
+Innsbruck               Cologne (Köln)           Rome, Italy
+Klagenfurt              Stuttgart                Madrid, Spain
+Villach                 Düsseldorf               New York, USA
+Wels                    Leipzig
+St. Pölten              Dresden
+Dornbirn                Hannover · Dortmund...
+```
+
+For any other location → [latlong.net](https://www.latlong.net/)
 
 ---
 
 ## 📦 Dependencies
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `ipywidgets` | ≥ 7.6 | Interactive UI (dropdowns, date pickers, checkboxes, buttons) |
-| `requests` | ≥ 2.25 | NASA POWER API calls |
-| `pandas` | ≥ 1.3 | Data parsing, formatting, and export |
-| `openpyxl` | ≥ 3.0 | Excel `.xlsx` file writing |
-
-> **Note:** `ipywidgets` requires **Jupyter Notebook** or **JupyterLab**. Widgets will not render in static GitHub file previews.
+| Package | Role |
+|---|---|
+| `ipywidgets ≥ 7.6` | Interactive UI — date pickers, dropdowns, checkboxes |
+| `requests ≥ 2.25` | HTTP client for NASA POWER REST API |
+| `pandas ≥ 1.3` | Data ingestion, timestamp parsing, NaN handling, export |
+| `openpyxl ≥ 3.0` | Excel `.xlsx` serialisation |
 
 ---
 
-## 📁 Project Structure
+## 📂 Repository Structure
 
 ```
-📦 NASA_POWER_Data_Downloader/
-├── 📓 NASA_POWER_Downloader_R05.ipynb   ← Main notebook (2 cells: install + UI)
-├── 📁 images/                           ← Screenshots used in this README
-│   ├── 🖼️ NASA_POWER_Data_Downloader.jpg
-│   ├── 🖼️ parameters.jpg
-│   ├── 🖼️ parameters_reference.jpg
-│   └── 🖼️ community_description_and_trouble_shooting.jpg
+📦 NASA_POWER_Hourly_Climate_Data_Downloader/
+├── 📓 NASA_POWER_Downloader_R05.ipynb   ← Pipeline notebook (2 cells)
+├── 📁 images/                           ← README screenshots
+│   ├── NASA_POWER_Data_Downloader.jpg
+│   ├── parameters.jpg
+│   ├── parameters_reference.jpg
+│   └── community_description_and_trouble_shooting.jpg
 ├── 📄 README.md
 └── 📄 LICENSE
 ```
@@ -223,18 +281,13 @@ The file contains:
 
 ## ⚠️ Troubleshooting
 
-**Error 422?** This usually means one of the following:
-
-- Coordinates are over the ocean → try a land location
-- Too many parameters selected → try selecting fewer
-- Date range too long → start with 7–14 days
-- Some parameters are not available for hourly data
-
-**Timeout?** NASA servers can be slow:
-
-- Try a shorter date range (under 30 days recommended)
-- Try during off-peak hours (European mornings tend to be fastest)
-- Select fewer parameters per request
+| Error | Cause | Fix |
+|---|---|---|
+| `422 Unprocessable Entity` | Coordinates over ocean | Use a land location |
+| `422 Unprocessable Entity` | Too many parameters | Select ≤ 8 parameters |
+| `422 Unprocessable Entity` | Date range too long | Start with 7–14 days |
+| `Timeout` | NASA server congestion | Retry during European morning hours |
+| `KeyError: properties` | Unexpected API response format | Reduce parameters or retry |
 
 ---
 
@@ -243,16 +296,22 @@ The file contains:
 - [NASA POWER Data Access Viewer](https://power.larc.nasa.gov/data-access-viewer/)
 - [NASA POWER Parameter Dictionary](https://power.larc.nasa.gov/docs/tutorials/parameters/)
 - [NASA POWER API Documentation](https://power.larc.nasa.gov/docs/services/api/)
-- [latlong.net — Find coordinates for any city](https://www.latlong.net/)
+- [GEOS-5 Reanalysis System](https://gmao.gsfc.nasa.gov/GEOS_systems/)
 
 ---
 
-## 🤝 Contributing
+## 📜 License
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you'd like to change.
+Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
 
 ---
 
-**Built with 🛰️ NASA POWER API · 🐼 Pandas · 🪐 Jupyter · 🔧 ipywidgets**
+<div align="center">
 
-*Climate data, no friction.*
+**Built by [AIMLDS7](https://github.com/AIMLDS7)**
+
+*Part of an end-to-end energy analytics & ML portfolio*
+
+`NASA POWER API` · `Pandas` · `ipywidgets` · `Jupyter`
+
+</div>
