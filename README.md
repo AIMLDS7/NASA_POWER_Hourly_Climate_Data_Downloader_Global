@@ -22,7 +22,7 @@
 
 <br/>
 
-<img src="./images/NASA_POWER_Data_Downloader.jpg" width="750" alt="NASA POWER Data Downloader Interface"/>
+<img src="NASA_POWER_Data_Downloader.jpg" width="750" alt="NASA POWER Data Downloader Interface"/>
 
 </div>
 
@@ -49,12 +49,12 @@ NASA POWER provides **satellite-derived, model-assimilated reanalysis data** at 
 ## ⚙️ Data Pipeline Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                     NASA POWER DATA PIPELINE                        │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
+┌────────────────────────────────────────────────────────────────────┐
+│                     NASA POWER DATA PIPELINE                       │
+├────────────────────────────────────────────────────────────────────┤
+│                                                                    │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────────────┐  │
-│  │  USER INPUT  │───▶│  REST API    │───▶│   RAW JSON RESPONSE  │  │
+│  │  USER INPUT  │──▶│  REST API     │──▶│   RAW JSON RESPONSE  │  │
 │  │              │    │  (HTTPS GET) │    │   NASA POWER Server  │  │
 │  │ · Date range │    │              │    └──────────┬───────────┘  │
 │  │ · Lat / Lon  │    │ Timeout: 180s│               │              │
@@ -114,7 +114,7 @@ jupyter notebook NASA_POWER_Downloader_R05.ipynb
 ## 🖥️ Interactive Interface
 
 <div align="center">
-<img src="./images/parameters.jpg" width="700" alt="Parameter Selection Interface"/>
+<img src="parameters.jpg" width="700" alt="Parameter Selection Interface"/>
 </div>
 
 The UI is built with `ipywidgets` and renders fully inside Jupyter. All inputs are validated before the API call is dispatched.
@@ -132,7 +132,7 @@ The UI is built with `ipywidgets` and renders fully inside Jupyter. All inputs a
 ## 🏢 Data Communities & Domain Mapping
 
 <div align="center">
-<img src="./images/community_description_and_trouble_shooting.jpg" width="700" alt="Community Descriptions and Troubleshooting"/>
+<img src="community_description_and_trouble_shooting.jpg" width="700" alt="Community Descriptions and Troubleshooting"/>
 </div>
 
 Each NASA POWER community optimises the parameter set for a specific scientific domain:
@@ -150,7 +150,7 @@ Each NASA POWER community optimises the parameter set for a specific scientific 
 ## 📊 Parameter Reference
 
 <div align="center">
-<img src="./images/parameters_reference.jpg" width="700" alt="Full Parameter Reference Table"/>
+<img src="parameters_reference.jpg" width="700" alt="Full Parameter Reference Table"/>
 </div>
 
 | Parameter | Description | Units | Domain Priority |
