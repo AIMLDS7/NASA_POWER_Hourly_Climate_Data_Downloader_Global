@@ -129,7 +129,7 @@ The NASA POWER REST API is the same data engine that powers the portal's backend
 ├────────────────────────────────────────────────────────────────────┤
 │                                                                    │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────────────┐  │
-│  │  USER INPUT  │──▶│  REST API     │──▶│   RAW JSON RESPONSE  │  │
+│  │  USER INPUT  │──▶│  REST API    │──▶ │   RAW JSON RESPONSE  │  │
 │  │              │    │  (HTTPS GET) │    │   NASA POWER Server  │  │
 │  │ · Date range │    │              │    └──────────┬───────────┘  │
 │  │ · Lat / Lon  │    │ Timeout: 180s│               │              │
@@ -151,7 +151,7 @@ The NASA POWER REST API is the same data engine that powers the portal's backend
 │                                          │ {LON}_{START}_{END}  │  │
 │                                          │ .csv / .xlsx         │  │
 │                                          └──────────────────────┘  │
-└─────────────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
