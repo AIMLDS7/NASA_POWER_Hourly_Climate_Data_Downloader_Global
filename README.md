@@ -137,13 +137,9 @@ The NASA POWER REST API is the same data engine that powers the portal's backend
 
 ```mermaid
 flowchart LR
-    A["📋 User Input\nDate Range · Lat/Lon\nCommunity · Parameters"]
-    -->|HTTPS GET|
-    B["🛰️ NASA POWER\nREST API\nTimeout: 180s"]
-    -->|Raw JSON|
-    C["⚙️ Processing\nJSON → DataFrame\n-999 → NaN\nDatetimeIndex UTC"]
-    -->|ML-Ready|
-    D["📄 Structured Output\n.csv / .xlsx\nNASA_RE_LAT_LON\n_START_END"]
+    A["📋 User Input\nDate Range · Lat/Lon\nCommunity · Parameters"] -->|HTTPS GET| B["🛰️ NASA POWER\nREST API\nTimeout: 180s"]
+    B -->|Raw JSON| C["⚙️ Processing\nJSON → DataFrame\n-999 → NaN\nDatetimeIndex UTC"]
+    C -->|ML-Ready| D["📄 Structured Output\n.csv / .xlsx\nNASA_RE_LAT_LON\n_START_END"]
 ```
 
 ---
