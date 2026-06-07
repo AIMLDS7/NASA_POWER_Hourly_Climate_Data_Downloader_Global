@@ -26,6 +26,18 @@
 
 <br/>
 
+<table align="center">
+  <tr>
+    <td align="center"><strong>🗓️ Coverage</strong><br/>2001 → Present<br/><sub>Hourly Resolution</sub></td>
+    <td align="center"><strong>🌍 Locations</strong><br/>25+ City Presets<br/><sub>+ Custom Lat / Lon</sub></td>
+    <td align="center"><strong>📊 Parameters</strong><br/>15 Variables<br/><sub>3 Communities</sub></td>
+    <td align="center"><strong>💾 Output</strong><br/>CSV · Excel<br/><sub>ML-Ready Schema</sub></td>
+    <td align="center"><strong>🔑 Access</strong><br/>No API Key<br/><sub>Free & Open</sub></td>
+  </tr>
+</table>
+
+<br/>
+
 <img src="NASA_POWER_Data_Downloader.jpg" width="750" alt="NASA POWER Data Downloader Interface"/>
 
 </div>
@@ -123,35 +135,15 @@ The NASA POWER REST API is the same data engine that powers the portal's backend
 
 ## ⚙️ Data Pipeline Architecture
 
-```
-┌────────────────────────────────────────────────────────────────────┐
-│                     NASA POWER DATA PIPELINE                       │
-├────────────────────────────────────────────────────────────────────┤
-│                                                                    │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────────────┐  │
-│  │  USER INPUT  │──▶│  REST API    │──▶ │   RAW JSON RESPONSE  │  │
-│  │              │    │  (HTTPS GET) │    │   NASA POWER Server  │  │
-│  │ · Date range │    │              │    └──────────┬───────────┘  │
-│  │ · Lat / Lon  │    │ Timeout: 180s│               │              │
-│  │ · Community  │    │              │               ▼              │
-│  │ · Parameters │    └──────────────┘    ┌──────────────────────┐  │
-│  └──────────────┘                        │  DATA PROCESSING     │  │
-│                                          │                      │  │
-│                                          │ · JSON → DataFrame   │  │
-│                                          │ · Index → DateTime   │  │
-│                                          │ · -999 → NaN         │  │
-│                                          │ · Sort by timestamp  │  │
-│                                          └──────────┬───────────┘  │
-│                                                     │              │
-│                                                     ▼              │
-│                                          ┌──────────────────────┐  │
-│                                          │  STRUCTURED OUTPUT   │  │
-│                                          │                      │  │
-│                                          │ NASA_{COM}_{LAT}_    │  │
-│                                          │ {LON}_{START}_{END}  │  │
-│                                          │ .csv / .xlsx         │  │
-│                                          └──────────────────────┘  │
-└────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    A["📋 User Input\nDate Range · Lat/Lon\nCommunity · Parameters"]
+    -->|HTTPS GET|
+    B["🛰️ NASA POWER\nREST API\nTimeout: 180s"]
+    -->|Raw JSON|
+    C["⚙️ Processing\nJSON → DataFrame\n-999 → NaN\nDatetimeIndex UTC"]
+    -->|ML-Ready|
+    D["📄 Structured Output\n.csv / .xlsx\nNASA_RE_LAT_LON\n_START_END"]
 ```
 
 ---
@@ -220,8 +212,6 @@ Each NASA POWER community optimises the parameter set for a specific scientific 
 
 ## 📊 Parameter Reference
 
-
-
 | Parameter | Description | Units | Domain Priority |
 |---|---|---|---|
 | `ALLSKY_SFC_SW_DWN` | All Sky Surface Shortwave Downward Irradiance | W/m² | RE · SB · AG |
@@ -265,29 +255,37 @@ NASA_RE_48.2082_16.3738_2026-05-31_2026-06-06.csv
 
 Missing values (`-999`, `-99`) are automatically replaced with `NaN` for clean downstream ingestion into pandas, scikit-learn, or any ML pipeline.
 
+**Sample Output Preview (Vienna · RE Community · 2026-06-01):**
+```
+DateTime_UTC          ALLSKY_SFC_SW_DWN   T2M    RH2M   WS10M   WD10M
+2026-06-01 05:00:00               0.00   14.3    78.2     3.1   245.0
+2026-06-01 06:00:00              12.40   14.6    77.5     3.4   241.0
+2026-06-01 12:00:00             523.40   22.7    52.1     4.2   198.0
+2026-06-01 13:00:00             634.20   23.8    48.6     4.8   205.0
+2026-06-01 19:00:00               0.00   19.2    63.4     3.9   220.0
+```
+*DatetimeIndex in UTC · `-999` flags → `NaN` · Load instantly with `pd.read_csv("NASA_RE_...csv", index_col=0, parse_dates=True)`*
+
 ---
 
 ## 🧠 Downstream ML Use Cases
 
 This downloader was designed as the **data acquisition layer** for meteorology-driven ML pipelines:
 
-```
-NASA POWER Downloader
-        │
-        ▼
-  Hourly CSV / Excel
-        │
-   ┌────┴──────────────────────────────────────────┐
-   │                                               │
-   ▼                                               ▼
-Energy Price Forecasting                  PV / Wind Yield Modelling
-(XGBoost · LSTM · Transformer)            (Regression · Neural Net)
-        │                                          │
-        ▼                                          ▼
-  Feature Engineering                    Irradiance → Power Curve
-  · Lag features (t-1, t-24, t-168)      · Temperature derating
-  · Rolling statistics                   · Wind Weibull fitting
-  · Calendar encoding                    · Capacity factor calc
+```mermaid
+flowchart TD
+    SRC["🛰️ NASA POWER Pipeline
+Hourly CSV / Excel · ML-Ready"]
+    SRC --> EP["⚡ Energy Price Forecasting
+XGBoost · LSTM · Transformer"]
+    SRC --> PV["☀️ PV / Wind Yield Modelling
+Regression · Neural Net"]
+    EP  --> FE["🔧 Feature Engineering
+Lag t-1 · t-24 · t-168
+Rolling Stats · Calendar"]
+    PV  --> PC["📈 Power Curve Mapping
+Temp Derating · Weibull
+Capacity Factor Calc"]
 ```
 
 **Directly feeds into:**
@@ -336,9 +334,10 @@ For any other location → [latlong.net](https://www.latlong.net/)
 
 ```
 📦 NASA_POWER_Hourly_Climate_Data_Downloader/
-├── 📓 NASA_POWER_Downloader_R05.ipynb   ← Pipeline notebook (2 cells)                        
-├── NASA_POWER_Data_Downloader.jpg        ← README screenshots
-├── parameters.jpg                        ← README screenshots
+├── 📓 NASA_POWER_Downloader_R05.ipynb   ← Pipeline notebook (2 cells)
+├── 📁 images/                           ← README screenshots
+│   ├── NASA_POWER_Data_Downloader.jpg
+│   ├── parameters.jpg
 ├── 📄 README.md
 └── 📄 LICENSE
 ```
