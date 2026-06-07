@@ -206,10 +206,6 @@ The UI is built with `ipywidgets` and renders fully inside Jupyter. All inputs a
 
 ## 🏢 Data Communities & Domain Mapping
 
-<div align="center">
-<img src="community_description_and_trouble_shooting.jpg" width="700" alt="Community Descriptions and Troubleshooting"/>
-</div>
-
 Each NASA POWER community optimises the parameter set for a specific scientific domain:
 
 | Community | Domain | ML / Engineering Applications |
@@ -224,9 +220,7 @@ Each NASA POWER community optimises the parameter set for a specific scientific 
 
 ## 📊 Parameter Reference
 
-<div align="center">
-<img src="parameters_reference.jpg" width="700" alt="Full Parameter Reference Table"/>
-</div>
+
 
 | Parameter | Description | Units | Domain Priority |
 |---|---|---|---|
