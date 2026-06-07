@@ -331,9 +331,8 @@ For any other location → [latlong.net](https://www.latlong.net/)
 ```
 📦 NASA_POWER_Hourly_Climate_Data_Downloader/
 ├── 📓 NASA_POWER_Downloader_R05.ipynb   ← Pipeline notebook (2 cells)
-├── 📁 images/                           ← README screenshots
-│   ├── NASA_POWER_Data_Downloader.jpg
-│   ├── parameters.jpg
+├──    NASA_POWER_Data_Downloader.jpg     ← README screenshots
+├──    parameters.jpg                     ← README screenshots
 ├── 📄 README.md
 └── 📄 LICENSE
 ```
